@@ -1,4 +1,4 @@
-{
+# renovate
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>5ym/renovate-config"]
+  "extends": ["github>5ym/renovate"]
 }
