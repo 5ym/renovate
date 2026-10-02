@@ -24,6 +24,8 @@ jobs:
       cancel-in-progress: false
     container:
       image: ghcr.io/renovatebot/renovate:44.93.5
+      # 既定の非 root ユーザーだと runner が用意する /__w や /__e に書けない
+      options: --user root
     steps:
       - id: app-token
         uses: actions/create-github-app-token@v2
