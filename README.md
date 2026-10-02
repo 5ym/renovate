@@ -47,3 +47,11 @@ contains(github.event.pull_request.labels.*.name, 'needs-review')
 自動マージされなくなるのを避けるためです。
 
 `platformAutomerge` を使うため、対象リポジトリ側で **Settings → General → Allow auto-merge** を有効にしておく必要があります。
+
+## Renovate を回す(self-hosted)
+
+GitHub の `danything` と `5ym` は [.github/workflows/renovate.yml](.github/workflows/renovate.yml) が毎時 17 分に回す(Mend のクラウド版の App の代わり)。Forgejo(fj.doany.io)側は `doa/renovate` が回す。
+
+- GitHub App [doa-renovate](https://github.com/apps/doa-renovate)(持ち主は danything)を danything と 5ym に入れてある
+- 変数 `RENOVATE_APP_CLIENT_ID` / `RENOVATE_GIT_AUTHOR`、シークレット `RENOVATE_APP_PRIVATE_KEY`
+- `renovate.json` のあるリポジトリだけが対象(onboarding はしない)
