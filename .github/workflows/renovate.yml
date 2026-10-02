@@ -1,0 +1,52 @@
+name: Renovate
+
+# danything と 5ym の全リポジトリの依存を上げる PR を出す(Mend のクラウド版の App の代わり)。
+# Forgejo(fj.doany.io)側は doa/renovate が同じことをしている。
+# 1 時間に 1 回。手で回すときは Actions の画面から workflow_dispatch。
+# GitHub の schedule は数分〜数十分遅れることがあるが、Mend よりはまし
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    # GitHub App doa-renovate のインストールごとにトークンが分かれるので owner ごとに回す
+    strategy:
+      fail-fast: false
+      matrix:
+        owner: [danything, 5ym]
+    concurrency:
+      group: renovate-${{ matrix.owner }}
+      cancel-in-progress: false
+    container:
+      image: ghcr.io/renovatebot/renovate:44.93.5
+      # 既定の非 root ユーザーだと runner が用意する /__w や /__e に書けない
+      options: --user root
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          # GitHub App doa-renovate(danything の org が持ち主。5ym にもインストールしてある)
+          client-id: ${{ vars.RENOVATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ matrix.owner }}
+      - run: renovate
+        env:
+          RENOVATE_PLATFORM: github
+          RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
+          # App のトークンからは自分のユーザーを引けないので明示する。id は
+          # `gh api users/doa-renovate%5Bbot%5D --jq .id`
+          RENOVATE_GIT_AUTHOR: ${{ vars.RENOVATE_GIT_AUTHOR }}
+          # コミットを API で作る = App の署名付き(Verified)になる
+          RENOVATE_PLATFORM_COMMIT: enabled
+          RENOVATE_AUTODISCOVER: "true"
+          RENOVATE_AUTODISCOVER_FILTER: ${{ matrix.owner }}/*
+          # renovate.json のあるリポジトリだけ。App は全リポジトリに入れてあるので、
+          # 無いところへ onboarding の PR をばらまかない
+          RENOVATE_ONBOARDING: "false"
+          RENOVATE_REQUIRE_CONFIG: required
+          LOG_LEVEL: info
