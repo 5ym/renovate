@@ -1,6 +1,6 @@
-# renovate-config
+# renovate
 
-共有 Renovate プリセット。
+共有 Renovate プリセットと、GitHub 側で Renovate を回すワークフロー。
 
 ## 使い方
 
@@ -9,7 +9,7 @@
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>5ym/renovate-config"]
+  "extends": ["github>5ym/renovate"]
 }
 ```
 
