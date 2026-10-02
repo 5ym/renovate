@@ -28,7 +28,7 @@ jobs:
       options: --user root
     steps:
       - id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           # GitHub App doa-renovate(danything の org が持ち主。5ym にもインストールしてある)
           client-id: ${{ vars.RENOVATE_APP_CLIENT_ID }}
