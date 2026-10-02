@@ -54,4 +54,4 @@ GitHub の `danything` と `5ym` は [.github/workflows/renovate.yml](.github/wo
 
 - GitHub App [doa-renovate](https://github.com/apps/doa-renovate)(持ち主は danything)を danything と 5ym に入れてある
 - 変数 `RENOVATE_APP_CLIENT_ID` / `RENOVATE_GIT_AUTHOR`、シークレット `RENOVATE_APP_PRIVATE_KEY`
-- `renovate.json` のあるリポジトリだけが対象(onboarding はしない)
+- `renovate.json` の無いリポジトリには、上の `renovate.json` を足す onboarding の PR が出る。マージするまでそのリポジトリでは依存の PR は出ない(要らなければ PR を閉じれば以後出ない)
