@@ -23,7 +23,7 @@ jobs:
       group: renovate-${{ matrix.owner }}
       cancel-in-progress: false
     container:
-      image: ghcr.io/renovatebot/renovate:44.132.2
+      image: ghcr.io/renovatebot/renovate:44.132.4
       # 既定の非 root ユーザーだと runner が用意する /__w や /__e に書けない
       options: --user root
     steps:
