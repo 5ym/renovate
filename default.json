@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "rangeStrategy": "bump",
   "packageRules": [
     {
       "description": "Everything non-major goes in one PR and merges itself. These are small, frequent and reversible by putting the old tag back.",
@@ -36,6 +37,13 @@
       "addLabels": [
         "needs-review"
       ]
+    },
+    {
+      "description": "Libraries publish peerDependencies as the range they work with. Bumping it to the latest version would force every consumer to upgrade, so peers are widened instead (^5.0.0 -> ^5.0.0 || ^6.0.0) and everything else is bumped. Bumping (rather than updating only the lockfile) is the default because Renovate cannot do lockfile-only updates on bun.lock: in-range security fixes were being closed without being applied.",
+      "matchDepTypes": [
+        "peerDependencies"
+      ],
+      "rangeStrategy": "widen"
     }
   ],
   "automergeType": "pr",

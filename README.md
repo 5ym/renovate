@@ -37,6 +37,15 @@ contains(github.event.pull_request.labels.*.name, 'needs-review')
 
 ほかに `reviewers: ["5ym"]` で PR のレビュワーを指定します。
 
+### バージョン範囲は `bump`
+
+`rangeStrategy: "bump"` で、範囲内の更新でも `package.json` の指定ごと上げる(`^5.39.8` → `^5.57.1`)。
+既定のようにロックファイルだけを書き換える更新は **`bun.lock` では Renovate が行えず**、
+範囲内のセキュリティ修正の PR が適用されないまま閉じられていた(danything/blog #38〜#40)。
+
+`peerDependencies` だけは `widen`(`^5.0.0` → `^5.0.0 || ^6.0.0`)。ライブラリが対応範囲として
+公開している値なので、最新に引き上げると利用者全員に更新を強いることになる。
+
 ### なぜ chart は種類を問わず外すのか
 
 **chart の版は中身の大きさを表しません。** erpnext は `8.0.15` → `8.0.78` という「パッチ」で
