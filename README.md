@@ -35,7 +35,14 @@ contains(github.event.pull_request.labels.*.name, 'needs-review')
 
 と拾えるようにしてある。
 
-ほかに `reviewers: ["5ym"]` で PR のレビュワーを指定します。
+ほかに `reviewers: ["5ym"]` で PR のレビュワーを指定します。**自動マージする PR にも付ける**
+(`assignAutomerge: true`。Renovate の既定では自動マージの PR にはレビュワーが付かない)。
+
+### TypeScript は 7 未満
+
+svelte-check が TypeScript 6 と 7 を並べて要る(7 は `@typescript/native` の別名で読む)ので、`typescript` を 7 に
+上げると `bun run check` が起動しなくなる。7 つのリポジトリで同じ規則を書いていたのをここにまとめた。
+もっと厳しく止めたいリポジトリ(denpa の `<6`)は自分の規則を持つ(後から読まれるほうが勝つ)。
 
 ### バージョン範囲は `bump`
 
