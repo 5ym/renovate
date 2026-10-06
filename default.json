@@ -44,11 +44,19 @@
         "peerDependencies"
       ],
       "rangeStrategy": "widen"
+    },
+    {
+      "description": "svelte-check needs TypeScript 6 and 7 installed side by side, and reads the 7 half through the @typescript/native alias. Bumping the typescript entry to 7 leaves no 6 to pair with, which stops `bun run check` from starting at all. Hold it back until svelte-check drops the dual requirement. This was repeated in ashi, blog, lgtm, xool, yosegaki, mogiri and svelte-slider, so it lives here now; repositories that need a stricter cap (denpa: <6) keep their own rule, which wins because it comes later.",
+      "matchDepNames": [
+        "typescript"
+      ],
+      "allowedVersions": "<7"
     }
   ],
   "automergeType": "pr",
   "platformAutomerge": true,
   "reviewers": [
     "5ym"
-  ]
+  ],
+  "assignAutomerge": true
 }
