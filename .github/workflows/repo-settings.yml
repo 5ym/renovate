@@ -39,12 +39,19 @@ jobs:
           want=$(cat repo-settings.json)
           keys=$(jq -r 'keys[]' repo-settings.json | paste -sd, -)
           changed=0
+          failed=0
           for repo in $(gh api installation/repositories --paginate -q '.repositories[] | select(.archived | not) | .full_name'); do
             have=$(gh api "repos/$repo" | jq -c --arg k "$keys" '. as $r | ($k | split(",")) | map({(.): $r[.]}) | add')
             if [ "$(jq -S -c . <<<"$have")" != "$(jq -S -c . <<<"$want")" ]; then
               echo "::notice title=$repo::$(jq -c --argjson w "$want" 'to_entries | map(select(.value != $w[.key])) | map("\(.key): \(.value) → \($w[.key])") | join(", ")' <<<"$have")"
-              gh api -X PATCH "repos/$repo" --input repo-settings.json > /dev/null
-              changed=$((changed + 1))
+              # 1 本が失敗しても残りは揃える。失敗はまとめて最後にジョブを落とす
+              if gh api -X PATCH "repos/$repo" --input repo-settings.json > /dev/null; then
+                changed=$((changed + 1))
+              else
+                echo "::error title=$repo::設定を当てられなかった"
+                failed=$((failed + 1))
+              fi
             fi
           done
-          echo "${{ matrix.owner }}: ${changed} 本を直した" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ matrix.owner }}: ${changed} 本を直した、${failed} 本は失敗" >> "$GITHUB_STEP_SUMMARY"
+          [ "$failed" -eq 0 ]
