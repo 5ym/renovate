@@ -1,0 +1,28 @@
+name: Forgejo settings
+
+# forgejo-settings.json を Forgejo(fj.doany.io、組織 doa)に当てる。毎日と、設定を変えたとき。
+# リポジトリのマージの設定・ブランチの保護・組織の webhook。違うものだけ直す。PR では読むだけ。
+# トークンは Forgejo の yui の write:organization / write:repository(secrets の FORGEJO_TOKEN)
+on:
+  push:
+    branches: [main]
+    paths: [forgejo-settings.json, forgejo-settings.py, .github/workflows/forgejo-settings.yml]
+  pull_request:
+    paths: [forgejo-settings.json, forgejo-settings.py, .github/workflows/forgejo-settings.yml]
+  schedule:
+    - cron: "47 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 forgejo-settings.py
+        env:
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+          FORGEJO_MATRIX_WEBHOOK_URL: ${{ secrets.FORGEJO_MATRIX_WEBHOOK_URL }}
+          DRY_RUN: ${{ github.event_name == 'pull_request' }}
