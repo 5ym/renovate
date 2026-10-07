@@ -1,6 +1,9 @@
 name: Repo settings
 
-# danything と 5ym の全リポジトリ(アーカイブ済みを除く)に、repo-settings.json の設定を当てる。
+# danything と 5ym の全リポジトリ(アーカイブ済みを除く)に、repo-settings.json の設定と rulesets.json のルールセットを当てる。
+# ルールセットは既定のブランチの削除と force push を止めるだけ (管理者は外せる)。必須のチェックはリポジトリごとに違うので、
+# 各リポジトリが自分のルールセットで持つ (denpa の default など)。ここで持つのは名前が repo-config のものだけで、ほかには触らない。
+# 非公開のリポジトリは、プランによってはルールセットを使えない (403)。そのときは知らせて飛ばす
 # 新しいリポジトリも次の実行で揃い、手で変えた設定も戻る。
 # トークンは GitHub App doa-repo-settings(リポジトリの Administration の書き込みだけ。danything と 5ym に入れてある)
 on:
@@ -8,6 +11,7 @@ on:
     branches: [main]
     paths:
       - repo-settings.json
+      - rulesets.json
       - .github/workflows/repo-settings.yml
   schedule:
     - cron: "41 3 * * *"
@@ -54,4 +58,41 @@ jobs:
             fi
           done
           echo "${{ matrix.owner }}: ${changed} 本を直した、${failed} 本は失敗" >> "$GITHUB_STEP_SUMMARY"
+          [ "$failed" -eq 0 ]
+
+      - name: rulesets
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          name=$(jq -r .name rulesets.json)
+          # 比べるのは書いた項目だけ (GitHub が足す id や日時は見ない)
+          norm='{name, target, enforcement, conditions, rules: [.rules[] | {type}], bypass_actors: [.bypass_actors[] | {actor_id, actor_type, bypass_mode}]}'
+          want=$(jq -S -c "$norm" rulesets.json)
+          changed=0
+          failed=0
+          skipped=0
+          for repo in $(gh api installation/repositories --paginate -q '.repositories[] | select(.archived | not) | .full_name'); do
+            if ! list=$(gh api "repos/$repo/rulesets" 2>/dev/null); then
+              echo "::notice title=$repo::ルールセットを読めない (非公開でプランに無いなど)。飛ばす"
+              skipped=$((skipped + 1))
+              continue
+            fi
+            id=$(jq -r --arg n "$name" '.[] | select(.name == $n and .source_type == "Repository") | .id' <<<"$list" | head -1)
+            if [ -n "$id" ]; then
+              have=$(gh api "repos/$repo/rulesets/$id" | jq -S -c "$norm")
+              [ "$have" = "$want" ] && continue
+              method=PUT; url="repos/$repo/rulesets/$id"; what=直す
+            else
+              method=POST; url="repos/$repo/rulesets"; what=作る
+            fi
+            echo "::notice title=$repo::ルールセット $name を$what"
+            if gh api -X "$method" "$url" --input rulesets.json > /dev/null; then
+              changed=$((changed + 1))
+            else
+              echo "::error title=$repo::ルールセットを当てられなかった"
+              failed=$((failed + 1))
+            fi
+          done
+          echo "${{ matrix.owner }} のルールセット: ${changed} 本を直した、${skipped} 本は飛ばした、${failed} 本は失敗" >> "$GITHUB_STEP_SUMMARY"
           [ "$failed" -eq 0 ]

@@ -6,7 +6,7 @@ danything と 5ym の**全リポジトリの git の運用の共通設定**(2026
 | --- | --- |
 | 共有の Renovate プリセット | [default.json](default.json)(下の「使い方」) |
 | GitHub 側で Renovate を回す | [.github/workflows/renovate.yml](.github/workflows/renovate.yml)(GitHub App doa-renovate) |
-| リポジトリの設定を揃える | [repo-settings.json](repo-settings.json) を [.github/workflows/repo-settings.yml](.github/workflows/repo-settings.yml) が毎日と変更時に全リポジトリへ当てる(GitHub App doa-repo-settings。Administration の書き込みだけ) |
+| リポジトリの設定を揃える | [repo-settings.json](repo-settings.json) と [rulesets.json](rulesets.json)(既定のブランチの削除と force push を止める。必須のチェックは各リポジトリのルールセットで持つ)を [.github/workflows/repo-settings.yml](.github/workflows/repo-settings.yml) が毎日と変更時に全リポジトリへ当てる(GitHub App doa-repo-settings。Administration の書き込みだけ) |
 
 ### リポジトリの設定
 
