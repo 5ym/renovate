@@ -50,4 +50,8 @@ jobs:
           RENOVATE_ONBOARDING: "true"
           RENOVATE_ONBOARDING_CONFIG: '{"$schema":"https://docs.renovatebot.com/renovate-schema.json","extends":["github>5ym/repo-config"]}'
           RENOVATE_REQUIRE_CONFIG: required
+          # postUpgradeTasks で流してよいコマンド(正規表現。これに合わないものは Renovate が拒む)。
+          # danything/gitops の pulumi/ は bun.lock を Renovate が作れない(SDK を pulumi install でしか作れない)ので、
+          # そのリポジトリのスクリプトで pulumi install させる(gitops の pulumi/README.md)
+          RENOVATE_ALLOWED_COMMANDS: '["^bash pulumi/renovate-post-upgrade\\.sh$"]'
           LOG_LEVEL: info
