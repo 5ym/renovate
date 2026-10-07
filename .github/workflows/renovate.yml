@@ -48,6 +48,6 @@ jobs:
           # renovate.json の無いリポジトリには、共有プリセットを使う renovate.json を
           # 足す onboarding の PR を出す。マージされるまでは依存の PR は出さない
           RENOVATE_ONBOARDING: "true"
-          RENOVATE_ONBOARDING_CONFIG: '{"$schema":"https://docs.renovatebot.com/renovate-schema.json","extends":["github>5ym/renovate"]}'
+          RENOVATE_ONBOARDING_CONFIG: '{"$schema":"https://docs.renovatebot.com/renovate-schema.json","extends":["github>5ym/repo-config"]}'
           RENOVATE_REQUIRE_CONFIG: required
           LOG_LEVEL: info
