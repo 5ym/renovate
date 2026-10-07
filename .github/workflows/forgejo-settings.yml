@@ -37,7 +37,7 @@ jobs:
           AUD: ${{ vars.FORGEJO_AUDIENCE }}
         run: |
           test -n "${AUD:-}" || { echo "::error::リポジトリの変数 FORGEJO_AUDIENCE が無い"; exit 1; }
-          jwt=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUD" | jq -r .value)
+          jwt=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUD" | jq -er .value)
           echo "::add-mask::$jwt"
           echo "FORGEJO_TOKEN=$jwt" >> "$GITHUB_ENV"
       - if: github.event_name != 'pull_request'
