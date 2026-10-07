@@ -53,11 +53,14 @@ for repo, rules in cfg["branch_protections"].items():
             d = diff(cur, {k: v for k, v in rule.items() if k != "rule_name"})
             if d: apply(f"{repo}: 保護 {rule['rule_name']} {d}", "PATCH", f"/repos/{ORG}/{repo}/branch_protections/{rule['rule_name']}", d)
 
-# 3. 組織の webhook(種類で見分ける。書いていない webhook は消さない)
+# 3. 組織の webhook(**種類ごとに 1 本**の前提で、種類で見分ける。同じ種類を手で足すと上書きされる。書いていない webhook は消さない)
 st, hooks = api("GET", f"/orgs/{ORG}/hooks")
 if st != 200: sys.exit(f"hooks: {st} {hooks}")
 for w in cfg["org_webhooks"]:
-    url = os.environ[w["url_secret"]] if "url_secret" in w else w["url"]
+    # URL を secrets から取るものは、空なら止める(空の URL で PATCH すると本番の webhook の URL が消える)
+    url = os.environ.get(w["url_secret"], "") if "url_secret" in w else w["url"]
+    if not url:
+        failed.append(f"webhook {w['name']}: secrets の {w.get('url_secret')} が空なので触らない"); continue
     want_cfg = dict(w["config"], url=url)
     body = {"type": w["type"], "config": want_cfg, "events": w["events"], "active": True, "branch_filter": w["branch_filter"]}
     cur = next((h for h in hooks if h["type"] == w["type"]), None)
