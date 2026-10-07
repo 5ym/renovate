@@ -1,6 +1,18 @@
-# renovate
+# repo-config
 
-共有 Renovate プリセットと、GitHub 側で Renovate を回すワークフロー。
+danything と 5ym の**全リポジトリの git の運用の共通設定**(2026-10-07 に 5ym/renovate から改名)。
+
+| 中身 | 在処 |
+| --- | --- |
+| 共有の Renovate プリセット | [default.json](default.json)(下の「使い方」) |
+| GitHub 側で Renovate を回す | [.github/workflows/renovate.yml](.github/workflows/renovate.yml)(GitHub App doa-renovate) |
+| リポジトリの設定を揃える | [repo-settings.json](repo-settings.json) を [.github/workflows/repo-settings.yml](.github/workflows/repo-settings.yml) が毎日と変更時に全リポジトリへ当てる(GitHub App doa-repo-settings。Administration の書き込みだけ) |
+
+### リポジトリの設定
+
+ブランチの更新の提案・自動マージ・マージ後のブランチ削除をオン、マージは squash だけ。新しいリポジトリも次の実行で揃い、
+手で変えても戻る。変えたいときは repo-settings.json を直す(項目は GitHub の `PATCH /repos/{owner}/{repo}` の名前)。
+Renovate の自動マージ(`platformAutomerge`)は、リポジトリで自動マージが許可されていないと十分に働かない。
 
 ## 使い方
 
@@ -9,7 +21,7 @@
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>5ym/renovate"]
+  "extends": ["github>5ym/repo-config"]
 }
 ```
 

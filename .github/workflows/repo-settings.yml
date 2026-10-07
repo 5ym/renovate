@@ -1,0 +1,57 @@
+name: Repo settings
+
+# danything と 5ym の全リポジトリ(アーカイブ済みを除く)に、repo-settings.json の設定を当てる。
+# 新しいリポジトリも次の実行で揃い、手で変えた設定も戻る。
+# トークンは GitHub App doa-repo-settings(リポジトリの Administration の書き込みだけ。danything と 5ym に入れてある)
+on:
+  push:
+    branches: [main]
+    paths:
+      - repo-settings.json
+      - .github/workflows/repo-settings.yml
+  schedule:
+    - cron: "41 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        owner: [danything, 5ym]
+    steps:
+      - uses: actions/checkout@v7
+      - id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.REPO_SETTINGS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.REPO_SETTINGS_APP_PRIVATE_KEY }}
+          owner: ${{ matrix.owner }}
+      - name: apply
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          want=$(cat repo-settings.json)
+          keys=$(jq -r 'keys[]' repo-settings.json | paste -sd, -)
+          changed=0
+          failed=0
+          for repo in $(gh api installation/repositories --paginate -q '.repositories[] | select(.archived | not) | .full_name'); do
+            have=$(gh api "repos/$repo" | jq -c --arg k "$keys" '. as $r | ($k | split(",")) | map({(.): $r[.]}) | add')
+            if [ "$(jq -S -c . <<<"$have")" != "$(jq -S -c . <<<"$want")" ]; then
+              echo "::notice title=$repo::$(jq -c --argjson w "$want" 'to_entries | map(select(.value != $w[.key])) | map("\(.key): \(.value) → \($w[.key])") | join(", ")' <<<"$have")"
+              # 1 本が失敗しても残りは揃える。失敗はまとめて最後にジョブを落とす
+              if gh api -X PATCH "repos/$repo" --input repo-settings.json > /dev/null; then
+                changed=$((changed + 1))
+              else
+                echo "::error title=$repo::設定を当てられなかった"
+                failed=$((failed + 1))
+              fi
+            fi
+          done
+          echo "${{ matrix.owner }}: ${changed} 本を直した、${failed} 本は失敗" >> "$GITHUB_STEP_SUMMARY"
+          [ "$failed" -eq 0 ]
