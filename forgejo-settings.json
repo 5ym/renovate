@@ -7,7 +7,6 @@
     "allow_rebase_explicit": false,
     "allow_squash_merge": true,
     "allow_fast_forward_only_merge": false,
-    "allow_manual_merge": false,
     "allow_rebase_update": true,
     "default_delete_branch_after_merge": true,
     "default_merge_style": "squash"
@@ -18,7 +17,9 @@
         "rule_name": "main",
         "enable_push": false,
         "enable_status_check": true,
-        "status_check_contexts": ["Check / *"],
+        "status_check_contexts": [
+          "Check / *"
+        ],
         "required_approvals": 0,
         "block_on_outdated_branch": false,
         "apply_to_admins": false
@@ -30,16 +31,50 @@
       "name": "Argo CD(push で同期を早める)",
       "type": "gitea",
       "url": "https://ac.doany.io/api/webhook",
-      "config": { "content_type": "json" },
-      "events": ["push"],
+      "config": {
+        "content_type": "json"
+      },
+      "events": [
+        "push"
+      ],
       "branch_filter": ""
     },
     {
       "name": "Matrix の部屋 forgejo(hookshot の汎用の受け口。URL は secrets の FORGEJO_MATRIX_WEBHOOK_URL)",
       "type": "slack",
       "url_secret": "FORGEJO_MATRIX_WEBHOOK_URL",
-      "config": { "content_type": "json", "channel": "#notify-forgejo" },
-      "events": ["create", "delete", "fork", "push", "issues", "issue_comment", "pull_request", "pull_request_review", "pull_request_comment", "release", "repository", "workflow_run"],
+      "config": {
+        "content_type": "json",
+        "channel": "#notify-forgejo"
+      },
+      "events": [
+        "create",
+        "delete",
+        "fork",
+        "push",
+        "issues",
+        "issue_assign",
+        "issue_label",
+        "issue_milestone",
+        "issue_comment",
+        "pull_request",
+        "pull_request_assign",
+        "pull_request_label",
+        "pull_request_milestone",
+        "pull_request_comment",
+        "pull_request_review_approved",
+        "pull_request_review_rejected",
+        "pull_request_review_comment",
+        "pull_request_sync",
+        "wiki",
+        "repository",
+        "release",
+        "package",
+        "pull_request_review_request",
+        "action_run_failure",
+        "action_run_recover",
+        "action_run_success"
+      ],
       "branch_filter": "*"
     }
   ]
