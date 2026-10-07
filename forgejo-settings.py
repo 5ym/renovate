@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # forgejo-settings.json を Forgejo(fj.doany.io)に当てる。違うものだけ直し、何を直したかを出す。
-# 環境変数: FORGEJO_TOKEN(組織とリポジトリの書き込み)、各 webhook の url_secret の名前の変数。DRY_RUN=true なら読むだけ
+# 環境変数: FORGEJO_TOKEN(組織とリポジトリの書き込み。CI では GitHub の OIDC の JWT、手元ではトークン)、各 webhook の url_secret の名前の変数。DRY_RUN=true なら読むだけ
 import json, os, sys, urllib.request
 
 cfg = json.load(open(os.path.join(os.path.dirname(__file__), "forgejo-settings.json")))

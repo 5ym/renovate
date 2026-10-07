@@ -2,8 +2,11 @@ name: Forgejo settings
 
 # forgejo-settings.json を Forgejo(fj.doany.io、組織 doa)に当てる。毎日と、設定を変えたとき。
 # リポジトリのマージの設定・ブランチの保護・組織の webhook。違うものだけ直す。
-# PR では書き込みのトークンを渡さず、書式だけ確かめる(PR の中でスクリプトを書き換えられても書き込めないように)
-# トークンは Forgejo の yui の write:organization / write:repository(secrets の FORGEJO_TOKEN)
+# PR では書き込みの資格を渡さず、書式だけ確かめる(PR の中でスクリプトを書き換えられても書き込めないように)
+# **Forgejo のトークンは置かない。** GitHub Actions の OIDC の JWT を、Forgejo の yui の承認済みインテグレーション
+# (Authorized Integrations、汎用 JWT。write:organization / write:repository)が受け、yui として通す。
+# インテグレーションのクレームのルールは「このリポジトリ・main・このワークフロー・push / schedule / workflow_dispatch」だけ
+# なので、PR や別の枝の JWT は Forgejo に断られる。aud はリポジトリの変数 FORGEJO_AUDIENCE(秘密ではない)
 on:
   push:
     branches: [main]
@@ -20,12 +23,24 @@ permissions:
 jobs:
   apply:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v7
       - if: github.event_name == 'pull_request'
         run: python3 -c "import json; json.load(open('forgejo-settings.json'))" && python3 -m py_compile forgejo-settings.py
+      # JWT は「Authorization: token ...」のままで Forgejo の API に通るので、スクリプトは変えない
+      - if: github.event_name != 'pull_request'
+        name: Forgejo に渡す JWT を取る
+        env:
+          AUD: ${{ vars.FORGEJO_AUDIENCE }}
+        run: |
+          test -n "${AUD:-}" || { echo "::error::リポジトリの変数 FORGEJO_AUDIENCE が無い"; exit 1; }
+          jwt=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUD" | jq -er .value)
+          echo "::add-mask::$jwt"
+          echo "FORGEJO_TOKEN=$jwt" >> "$GITHUB_ENV"
       - if: github.event_name != 'pull_request'
         run: python3 forgejo-settings.py
         env:
-          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
           FORGEJO_MATRIX_WEBHOOK_URL: ${{ secrets.FORGEJO_MATRIX_WEBHOOK_URL }}
