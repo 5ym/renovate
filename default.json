@@ -51,6 +51,13 @@
         "typescript"
       ],
       "allowedVersions": "<7"
+    },
+    {
+      "description": "Wait an hour after a GitHub release is published before proposing it. A release's tag appears first and its assets are uploaded minutes later; Renovate saw Infisical/cli v0.43.141 in that gap, and the PR's image build (which downloads the asset and checks it against the release's checksum file) failed with a 404 (danything/gitops#327, 2026-10-09: CI at 18:37 UTC, assets uploaded 18:45). An hour is enough for the uploads and short enough not to delay anything noticeably.",
+      "matchDatasources": [
+        "github-releases"
+      ],
+      "minimumReleaseAge": "1 hour"
     }
   ],
   "automergeType": "pr",
